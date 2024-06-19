@@ -1,7 +1,9 @@
 package br.com.cesarMontaldi.controller;
 
-import br.com.cesarMontaldi.model.Tutor;
-import br.com.cesarMontaldi.repository.TutorRepository;
+import br.com.cesarMontaldi.dto.tutor.AtualizacaoTutorDto;
+import br.com.cesarMontaldi.dto.tutor.CadastroTutorDto;
+import br.com.cesarMontaldi.exception.ValidacaoException;
+import br.com.cesarMontaldi.service.TutorService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,27 +15,24 @@ import org.springframework.web.bind.annotation.*;
 public class TutorController {
 
     @Autowired
-    private TutorRepository repository;
+    private TutorService tutorService;
 
     @PostMapping
     @Transactional
-    public ResponseEntity<String> cadastrar(@RequestBody @Valid Tutor tutor) {
-        boolean telefoneJaCadastrado = repository.existsByTelefone(tutor.getTelefone());
-        boolean emailJaCadastrado = repository.existsByEmail(tutor.getEmail());
-
-        if (telefoneJaCadastrado || emailJaCadastrado) {
-            return ResponseEntity.badRequest().body("Dados já cadastrados para outro tutor!");
-        } else {
-            repository.save(tutor);
-            return ResponseEntity.ok().build();
+    public ResponseEntity<String> cadastrar(@RequestBody @Valid CadastroTutorDto dados) {
+        try {
+            tutorService.cadastrar(dados);
+            return ResponseEntity.ok().body("Cadastro realizado com sucesso!");
+        } catch (ValidacaoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping
     @Transactional
-    public ResponseEntity<String> atualizar(@RequestBody @Valid Tutor tutor) {
-        repository.save(tutor);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> atualizar(@RequestBody @Valid AtualizacaoTutorDto dados) {
+        tutorService.atualizar(dados);
+        return ResponseEntity.ok().body("Dados atualizados com sucesso!");
     }
 
 }
